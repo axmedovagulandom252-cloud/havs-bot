@@ -1,3 +1,6 @@
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -26,7 +29,21 @@ dp = Dispatcher()
 # =========================
 # ASOSIY MENYU
 # =========================
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Havas Bot ishlayapti!")
 
+    def log_message(self, format, *args):
+        pass
+
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    print(f"Web server {port} portda ishga tushdi")
+    server.serve_forever()
 def main_menu():
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -160,6 +177,6 @@ async def main():
     print("Bot ishga tushdi...")
     await dp.start_polling(bot)
 
-
-if __name__ == "__main__":
+    if __name__ == "__main__":
+    threading.Thread(target=run_web, daemon=True).start()
     asyncio.run(main())
